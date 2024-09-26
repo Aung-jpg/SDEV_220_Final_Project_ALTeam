@@ -1,6 +1,5 @@
 # library_project
-Build a working Python system for a company.
-This Python system will at least:
+Build a Python system for the ACPL that will at least:
 - graphical user-friendly interface that interacts with a minimum of three classes
 - utilize collections such as lists, tuples, arrays, and dictionaries
 - no syntax or runtime errors and produce the correct results
