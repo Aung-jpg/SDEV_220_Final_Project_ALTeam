@@ -1,126 +1,76 @@
 import tkinter as tk
-from tkinter import ttk
-from datetime import datetime, timedelta
+from tkinter import messagebox
+import sqlite3
+from datetime import datetime
+from reservation import ComputerReservation
 
-# Mock data for simplicity
-valid_pin = "1234"  # Replace this with a secure PIN storage method in real applications
+# Assume the ComputerReservation class code is already defined here...
 
-# Availability data (branch, date, time) -> available computers
-availability_data = {
-    "Central Library": {
-        "2024-10-30": {"9:00 AM": 3, "10:00 AM": 2, "11:00 AM": 0, "12:00 PM": 1},
-        "2024-10-31": {"9:00 AM": 4, "10:00 AM": 1, "11:00 AM": 2, "12:00 PM": 3}
-    },
-    "East Branch": {
-        "2024-10-30": {"9:00 AM": 1, "10:00 AM": 0, "11:00 AM": 1, "12:00 PM": 2},
-        "2024-10-31": {"9:00 AM": 0, "10:00 AM": 1, "11:00 AM": 2, "12:00 PM": 1}
-    }
-}
+class ReservationGUI:
+    def __init__(self, master):
+        self.master = master
+        master.title("Computer Reservation System")
 
+        self.label_card_number = tk.Label(master, text="Library Card Number:")
+        self.label_card_number.pack()
 
-# Function to check availability
-def check_availability():
-    branch = branch_var.get()
-    date = date_var.get()
-    time = time_var.get()
+        self.entry_card_number = tk.Entry(master)
+        self.entry_card_number.pack()
 
-    if branch and date and time:
-        available_computers = availability_data.get(branch, {}).get(date, {}).get(time, 0)
-        if available_computers > 0:
-            result_label.config(text=f"{available_computers} computers available at {branch} on {date} at {time}")
+        self.label_time_slot = tk.Label(master, text="Time Slot (MM/DD/YY HH:00):")
+        self.label_time_slot.pack()
+
+        self.entry_time_slot = tk.Entry(master)
+        self.entry_time_slot.pack()
+
+        self.reserve_button = tk.Button(master, text="Reserve Computer", command=self.reserve_computer)
+        self.reserve_button.pack()
+
+        self.cancel_button = tk.Button(master, text="Cancel Reservation", command=self.cancel_reservation)
+        self.cancel_button.pack()
+
+        self.list_button = tk.Button(master, text="List Reservations", command=self.list_reservations)
+        self.list_button.pack()
+
+    def reserve_computer(self):
+        card_number = self.entry_card_number.get()
+        time_slot = self.entry_time_slot.get()
+
+        if not card_number or not time_slot:
+            messagebox.showerror("Input Error", "Please fill in all fields.")
+            return
+
+        reservation = ComputerReservation(card_number)
+        reservation.reserve_computer(time_slot)
+
+    def cancel_reservation(self):
+        card_number = self.entry_card_number.get()
+        time_slot = self.entry_time_slot.get()
+
+        if not card_number or not time_slot:
+            messagebox.showerror("Input Error", "Please fill in all fields.")
+            return
+
+        reservation = ComputerReservation(card_number)
+        reservation.cancel_reservation(time_slot)
+
+    def list_reservations(self):
+        card_number = self.entry_card_number.get()
+
+        if not card_number:
+            messagebox.showerror("Input Error", "Please enter your library card number.")
+            return
+
+        reservation = ComputerReservation(card_number)
+        reservations = reservation.list_reservations()
+        
+        # TODO: make reservations show all the reservations in one messagebox
+        if reservations:
+            messagebox.showinfo("Your Reservations", "\n".join(reservations))
         else:
-            result_label.config(text="No computers available for the selected branch, date, and time.")
-    else:
-        result_label.config(text="Please select all options to check availability.")
+            messagebox.showinfo("Your Reservations", "No reservations found.")
 
-
-# Function to handle reservation
-def reserve_computer():
-    branch = branch_var.get()
-    date = date_var.get()
-    time = time_var.get()
-
-    if branch and date and time:
-        available_computers = availability_data.get(branch, {}).get(date, {}).get(time, 0)
-        if available_computers > 0:
-            # Update availability
-            availability_data[branch][date][time] -= 1
-            result_label.config(text=f"Computer reserved at {branch} on {date} at {time}")
-        else:
-            result_label.config(text="Sorry, no computers are available for the selected time.")
-    else:
-        result_label.config(text="Please fill all fields to reserve a computer.")
-
-
-# Function to verify login PIN
-def verify_pin():
-    entered_pin = pin_entry.get()
-    if entered_pin == valid_pin:
-        login_frame.pack_forget()  # Hide login frame
-        main_frame.pack()  # Show main reservation frame
-    else:
-        login_result_label.config(text="Incorrect PIN. Please try again.")
-
-
-# Set up the main application window
-root = tk.Tk()
-root.title("Library Computer Reservation System")
-root.geometry("400x400")
-
-# Login Frame
-login_frame = tk.Frame(root)
-login_label = tk.Label(login_frame, text="Enter 4-digit PIN:")
-login_label.pack(pady=10)
-pin_entry = tk.Entry(login_frame, show="*", width=4)
-pin_entry.pack()
-login_button = tk.Button(login_frame, text="Login", command=verify_pin)
-login_button.pack(pady=5)
-login_result_label = tk.Label(login_frame, text="", fg="red")
-login_result_label.pack()
-login_frame.pack()
-
-# Main Reservation Frame (hidden initially)
-main_frame = tk.Frame(root)
-
-# Branch selection
-branch_label = tk.Label(main_frame, text="Select Library Branch:")
-branch_label.pack()
-branch_var = tk.StringVar()
-branch_dropdown = ttk.Combobox(main_frame, textvariable=branch_var)
-branch_dropdown['values'] = list(availability_data.keys())
-branch_dropdown.pack()
-
-# Date selection
-date_label = tk.Label(main_frame, text="Select Date:")
-date_label.pack()
-date_var = tk.StringVar()
-date_dropdown = ttk.Combobox(main_frame, textvariable=date_var)
-
-# Generate dates for the next 7 days
-today = datetime.today()
-dates = [(today + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
-date_dropdown['values'] = dates
-date_dropdown.pack()
-
-# Time selection
-time_label = tk.Label(main_frame, text="Select Time:")
-time_label.pack()
-time_var = tk.StringVar()
-time_dropdown = ttk.Combobox(main_frame, textvariable=time_var)
-time_dropdown['values'] = (
-"9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM")
-time_dropdown.pack()
-
-# Check availability button
-check_button = tk.Button(main_frame, text="Check Availability", command=check_availability)
-check_button.pack(pady=5)
-
-# Reserve button
-reserve_button = tk.Button(main_frame, text="Reserve Computer", command=reserve_computer)
-reserve_button.pack(pady=5)
-
-# Result label
-result_label = tk.Label(main_frame, text="", fg="green")
-result_label.pack()
-
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ReservationGUI(root)
+    root.mainloop()
