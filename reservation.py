@@ -97,11 +97,9 @@ class ComputerReservation:
             cursor.execute("SELECT time_slot FROM reservations WHERE library_card_number = ?", (self.library_card_number,))
             reservations = cursor.fetchall()
             if reservations:
-                print("Your reservations:")
-                for reservation in reservations:
-                    print(reservation[0])
+                return reservations[0]
             else:
-                print("No reservations found.")
+                return "No reservations found."
 
 
     @staticmethod
