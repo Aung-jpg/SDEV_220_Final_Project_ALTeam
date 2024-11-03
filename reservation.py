@@ -53,19 +53,17 @@ class ComputerReservation:
 
     def reserve_computer(self, time_slot: str):
         if not self.is_valid_time_slot(time_slot):
-            return
+            raise TypeError("Invalid time slot format. Please use 'MM/DD/YY HH:00'.")
         
         if self.is_past_time_slot(time_slot):
-            print("Cannot reserve a time slot in the past.")
-            return
+            raise ValueError("Cannot reserve a time slot in the past.")
 
         with self.get_db() as conn:
             cursor = conn.cursor()
             try:
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM reservations WHERE time_slot = ?)", (time_slot,))
                 if cursor.fetchone()[0]:
-                    print("Time slot is already reserved.")
-                    return
+                    raise ValueError("Time slot is already reserved.")
 
                 cursor.execute("INSERT INTO reservations (time_slot, library_card_number) VALUES (?, ?)", (time_slot, self.library_card_number))
                 conn.commit()
@@ -85,21 +83,9 @@ class ComputerReservation:
                 if cursor.rowcount > 0:
                     print(f"Reservation for {time_slot} cancelled.")
                 else:
-                    print("No reservation found for this time slot.")
+                    raise ValueError("No reservation found for this time slot.")
             except sqlite3.Error as e:
                 print(f"Failed to cancel reservation: {e}")
-
-
-    def list_reservations(self):
-        """List all reservations for the user."""
-        with self.get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT time_slot FROM reservations WHERE library_card_number = ?", (self.library_card_number,))
-            reservations = cursor.fetchall()
-            if reservations:
-                return reservations[0]
-            else:
-                return "No reservations found."
 
 
     @staticmethod
@@ -135,3 +121,12 @@ class ComputerReservation:
         dt = datetime.strptime(time_slot, '%m/%d/%y %H:%M')
         return dt < datetime.now()
 
+
+    def remove_past_reservations(self):
+        """Remove all reservations that have already passed."""
+        now = datetime.now()
+        with self.get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM reservations WHERE time_slot < ?", (now.strftime('%m/%d/%y %H:%M'),))
+            conn.commit()
+            print("Past reservations removed.")
