@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import sqlite3
 from datetime import datetime
-from reservation import ComputerReservation
+from user import User
 
 # Assume the ComputerReservation class code is already defined here...
 
@@ -32,6 +32,9 @@ class ReservationGUI:
         self.list_button = tk.Button(master, text="List Reservations", command=self.list_reservations)
         self.list_button.pack()
 
+        self.list_button = tk.Button(master, text="Refresh Reservations", command=self.refresh_reservations)
+        self.list_button.pack()
+
     def reserve_computer(self):
         card_number = self.entry_card_number.get()
         time_slot = self.entry_time_slot.get()
@@ -40,8 +43,25 @@ class ReservationGUI:
             messagebox.showerror("Input Error", "Please fill in all fields.")
             return
 
-        reservation = ComputerReservation(card_number)
-        reservation.reserve_computer(time_slot)
+        user = User(card_number)
+        try:
+            if len(user.list_reservations()) > 3:
+                messagebox.showerror("Reservation Limit", "Reservation limit of three has been hit. Please cancel reservations or wait.")
+                return
+        except TypeError:
+            pass
+
+        reservation = user.reservation
+        try:
+            reservation.reserve_computer(time_slot)
+            messagebox.showinfo("Reservation Successful", "You have successfully made a reservation.")
+        except TypeError:
+            messagebox.showerror("Input Error", "Invalid time slot format. Please use 'MM/DD/YY HH:00'.")
+            return
+        except ValueError:
+            messagebox.showerror("Value Error", "Cannot reserve that time slot. The library is closed, it is already reserved, or it's in the past.")
+            return
+
 
     def cancel_reservation(self):
         card_number = self.entry_card_number.get()
@@ -51,8 +71,13 @@ class ReservationGUI:
             messagebox.showerror("Input Error", "Please fill in all fields.")
             return
 
-        reservation = ComputerReservation(card_number)
-        reservation.cancel_reservation(time_slot)
+        user = User(card_number)
+        reservation = user.reservation
+        try:
+            reservation.cancel_reservation(time_slot)
+        except ValueError:
+            messagebox.showerror("Input Error", "No reservation found for this time slot.")
+            return
 
     def list_reservations(self):
         card_number = self.entry_card_number.get()
@@ -61,14 +86,24 @@ class ReservationGUI:
             messagebox.showerror("Input Error", "Please enter your library card number.")
             return
 
-        reservation = ComputerReservation(card_number)
-        reservations = reservation.list_reservations()
+        user = User(card_number)
+        reservations = user.list_reservations()
+        dates = [date[0] for date in reservations]
+        readable_string = ', '.join(dates)
         
-        # TODO: make reservations show all the reservations in one messagebox
         if reservations:
-            messagebox.showinfo("Your Reservations", "\n".join(reservations))
+            messagebox.showinfo("Your Reservations", readable_string)
         else:
             messagebox.showinfo("Your Reservations", "No reservations found.")
+
+    def refresh_reservations(self):
+        card_number = self.entry_card_number.get()
+        if not card_number:
+            messagebox.showerror("Input Error", "Please enter your library card number.")
+            return
+        user = User(card_number)
+        user.reservation.remove_past_reservations()
+        messagebox.showinfo("Refresh Reservations", "Your reservations have been refreshed.")
 
 if __name__ == "__main__":
     root = tk.Tk()
