@@ -88,10 +88,10 @@ class ReservationGUI:
 
         user = User(card_number)
         reservations = user.list_reservations()
-        dates = [date[0] for date in reservations]
-        readable_string = ', '.join(dates)
         
         if reservations:
+            dates = [date[0] for date in reservations]
+            readable_string = ', '.join(dates)
             messagebox.showinfo("Your Reservations", readable_string)
         else:
             messagebox.showinfo("Your Reservations", "No reservations found.")
