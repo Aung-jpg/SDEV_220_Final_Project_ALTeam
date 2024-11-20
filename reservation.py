@@ -1,11 +1,13 @@
 import sqlite3
 from datetime import datetime
+import hashlib
 
 
 class ComputerReservation:
-    def __init__(self, library_card_number):
+    def __init__(self, library_card_number, pin):
         self.create_tables()
         self.library_card_number = library_card_number
+        self.pin = pin
         exists = self.user_exists()
         if not exists:
             self.add_self()
@@ -29,8 +31,13 @@ class ComputerReservation:
     def add_self(self):
         with self.get_db() as conn:
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO all_members (library_card_number) VALUES (?)', (self.library_card_number,))
+            cursor.execute('INSERT INTO all_members (library_card_number, pin) VALUES (?, ?)', (self.library_card_number, self.encrypt_pin(self.pin,)))
             conn.commit()
+
+    def encrypt_pin(self, pin):
+        sha256_hash = hashlib.sha256()
+        sha256_hash.update(pin.encode('utf-8'))
+        return sha256_hash.hexdigest()
 
 
     def create_tables(self):
@@ -38,7 +45,8 @@ class ComputerReservation:
             cursor = conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS all_members(
-                    library_card_number TEXT PRIMARY KEY
+                    library_card_number TEXT PRIMARY KEY,
+                    pin TEXT NOT NULL
                 )
             ''')
             cursor.execute('''

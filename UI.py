@@ -27,6 +27,12 @@ class ReservationGUI:
         self.entry_card_number = tk.Entry(entry_frame, font=("Arial", 12), width=30)
         self.entry_card_number.grid(row=0, column=1, padx=10, pady=10)
 
+        # Library Card Pin
+        self.label_pin = tk.Label(entry_frame, text="Library Card Pin (4 Digit): ", font=("Arial", 12), bg="#e8f0fe")
+        self.label_pin.grid(row=0, column=0, padx=10, pady=10, sticky="e")
+        self.entry_pin = tk.Entry(entry_frame, font=("Arial", 12), width=30)
+        self.entry_pin.grid(row=0, column=1, padx=10, pady=10)
+
         # Time Slot
         self.label_time_slot = tk.Label(entry_frame, text="Time Slot (MM/DD/YY 24HR):", font=("Arial", 12),
                                         bg="#e8f0fe")
