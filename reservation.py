@@ -8,9 +8,6 @@ class ComputerReservation:
         self.create_tables()
         self.library_card_number = library_card_number
         self.pin = pin
-        exists = self.user_exists()
-        if not exists:
-            self.add_self()
         
         
     @staticmethod
@@ -28,11 +25,13 @@ class ComputerReservation:
         conn.close()
         return exists
     
+
     def add_self(self):
         with self.get_db() as conn:
             cursor = conn.cursor()
             cursor.execute('INSERT INTO all_members (library_card_number, pin) VALUES (?, ?)', (self.library_card_number, self.encrypt_pin(self.pin,)))
             conn.commit()
+
 
     def encrypt_pin(self, pin):
         sha256_hash = hashlib.sha256()
@@ -43,14 +42,18 @@ class ComputerReservation:
     def create_tables(self):
         with self.get_db() as conn:
             cursor = conn.cursor()
+            
+            # Enable foreign key constraints for this session
+            cursor.execute('PRAGMA foreign_keys = ON;')
+            
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS all_members(
+                CREATE TABLE IF NOT EXISTS all_members (
                     library_card_number TEXT PRIMARY KEY,
                     pin TEXT NOT NULL
                 )
             ''')
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS reservations(
+                CREATE TABLE IF NOT EXISTS reservations (
                     time_slot TEXT PRIMARY KEY,
                     library_card_number TEXT,
                     FOREIGN KEY(library_card_number) REFERENCES all_members(library_card_number)

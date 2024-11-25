@@ -6,7 +6,6 @@ class User():
     """User class will interact with a ComputerReservation class to reverse a computer"""
     def __init__(self, library_card_number:str, pin:str) -> None:
         self.library_card_number = library_card_number
-        # saving pin as hashed pin
         self.pin = pin
         validation = self.validate_user()
         if validation == 0:
@@ -34,7 +33,9 @@ class User():
             
     def register_user_testing(self):
         res = ComputerReservation(self.library_card_number, self.pin)
-        res.add_self()
+        exists = res.user_exists()
+        if not exists:
+            res.add_self()
     
     def validate_user(self):
         conn = sqlite3.connect('LibraryMembers.db')
@@ -52,7 +53,4 @@ class User():
             return 1
 
 
-
-
-person = User("001231789367213", "2007")
-person.register_user_testing()
+person = User("2222", "0000")
