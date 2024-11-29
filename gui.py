@@ -16,15 +16,14 @@ class GUI:
 
     def create_login_screen(self):
         self.clear_screen()
-        tk.Label(self.root, text="Library Card Number", font=self.large_font).grid(row=0, column=0)
-        tk.Label(self.root, text="Pin", font=self.large_font).grid(row=1, column=0)
+        tk.Label(self.root, text="Library Card Number", font=self.large_font).pack(pady=10)
         self.lcn_entry = tk.Entry(self.root, font=self.large_font)
+        self.lcn_entry.pack()
+        tk.Label(self.root, text="Pin", font=self.large_font).pack(pady=5)
         self.pin_entry = tk.Entry(self.root, show="*", font=self.large_font)
+        self.pin_entry.pack()
 
-        self.lcn_entry.grid(row=0, column=1)
-        self.pin_entry.grid(row=1, column=1)
-
-        tk.Button(self.root, text="Login", command=self.login, font=self.large_font).grid(row=2, column=0, columnspan=2)
+        tk.Button(self.root, text="Login", command=self.login, font=self.large_font).pack(pady=10)
 
     def login(self):
         lcn = self.lcn_entry.get()
@@ -50,11 +49,14 @@ class GUI:
     
     def create_main_screen(self):
         self.clear_screen()
+        self.user.reservation.remove_past_reservations()
         
         tk.Label(self.root, text=f"Logged in as Library Card Number: {self.user.library_card_number}", font=self.large_font).pack(pady=5)
 
         self.reserve_computer_button = tk.Button(self.root, text="Reserve Computer", command=self.create_reserve_computer_screen, font=self.large_font).pack(pady=5)
         self.cancel_reservation_button = tk.Button(self.root, text="Cancel Computer Reservation", command=self.cancel_computer_reservation_screen, font=self.large_font).pack(pady=5)
+        self.list_reservations_button = tk.Button(self.root, text="List Reservations", command=self.list_reservations_screen, font=self.large_font).pack(pady=5)
+        self.logout_button = tk.Button(self.root, text="Logout", command=self.logout, font=self.large_font).pack(pady=5)
 
     def create_reserve_computer_screen(self):
         self.clear_screen()
@@ -130,7 +132,17 @@ class GUI:
             messagebox.showinfo("Cancelation Success", f"Canceled reservation for {reservation}!")
             self.create_main_screen()
 
+    def list_reservations_screen(self):
+        self.clear_screen()
+        tk.Label(self.root, text="Reservations:", font=self.large_font).pack(pady=5)
+        reservations = self.user.list_reservations()
+        for reservation in reservations:
+            tk.Label(self.root, text=f"{reservation[0]}").pack(pady=5)
+        tk.Button(root, text="Back", command=self.create_main_screen).pack(pady=5)
 
+    def logout(self):
+        self.user = None
+        self.create_login_screen()
 
     def clear_screen(self):
         """
