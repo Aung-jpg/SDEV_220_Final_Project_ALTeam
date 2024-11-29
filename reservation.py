@@ -192,5 +192,10 @@ class ComputerReservation:
         now = datetime.now()
         with self.get_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM reservations WHERE time_slot < ?", (now.strftime('%m/%d/%y %H:%M'),))
+            cursor.execute("SELECT time_slot FROM reservations")
+            reservations = cursor.fetchall()
+            for reservation in reservations:
+                reservation = datetime.strptime(reservation[0], '%m/%d/%y %H:%M')
+                if reservation < now:
+                    cursor.execute("DELETE FROM reservations WHERE time_slot = ?", (reservation,))
             conn.commit()
