@@ -1,6 +1,6 @@
 from user import User
 
 # initializes users in the database for testing. All with the same password
-people = ["0000", "1111", "2222", "3333", "4444"]
+people = ["0", "1", "2", "3", "4"]
 for person in people:
-    User(person, "0000", 1)
+    User(person*14, "0000", 1)
