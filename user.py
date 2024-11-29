@@ -25,8 +25,12 @@ class User:
         """
         self.library_card_number = library_card_number
         self.pin = self.encrypt_pin(pin)  # Encrypt the PIN for security.
-        self.validation = self.validate_user()
 
+        # edge case where no tables exist yet
+        if testing == 1:
+            self.register_user_testing()
+
+        self.validation = self.validate_user()
         if self.validation == 0:
             # Library card number exists, and the PIN is correct.
             self.reservation = ComputerReservation(self.library_card_number, self.pin)
@@ -34,9 +38,6 @@ class User:
         elif self.validation == -1 and testing == 0:
             # Library card number doesn't exist (non-testing mode).
             raise TypeError("Library Card Number doesn't exist")
-        elif self.validation == -1 and testing == 1:
-            # Library card number doesn't exist (testing mode) - add user.
-            self.register_user_testing()
         elif self.validation == 1:
             # Library card number exists, but the PIN is incorrect.
             raise ValueError("Incorrect Pin")
@@ -82,7 +83,6 @@ class User:
         """
         res = ComputerReservation(self.library_card_number, self.pin)
         exists = res.user_exists()
-        print(exists, "printed")
         if not exists:
             res.add_self()
         else:
