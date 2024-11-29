@@ -94,10 +94,11 @@ class ComputerReservation:
 
         Raises:
             TypeError: If the time slot format is invalid.
-            ValueError: If the time slot is in the past or already reserved.
+            ValueError: If the time slot is in the past.
+            IndexError: If the time slot is already reserved.
         """
         if not self.is_valid_time_slot(time_slot):
-            raise TypeError("Invalid time slot format. Please use 'MM/DD/YY HH:00'.")
+            raise TypeError("Library is not open that day and time.")
 
         if self.is_past_time_slot(time_slot):
             raise ValueError("Cannot reserve a time slot in the past.")
@@ -107,11 +108,10 @@ class ComputerReservation:
             try:
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM reservations WHERE time_slot = ?)", (time_slot,))
                 if cursor.fetchone()[0]:
-                    raise ValueError("Time slot is already reserved.")
+                    raise IndexError("Time slot is already reserved.")
 
                 cursor.execute("INSERT INTO reservations (time_slot, library_card_number) VALUES (?, ?)", (time_slot, self.library_card_number))
                 conn.commit()
-                print(f"Computer reserved for {self.library_card_number} at {time_slot}.")
             except sqlite3.Error as e:
                 print(f"Failed to reserve computer: {e}")
 
@@ -132,7 +132,7 @@ class ComputerReservation:
                                (time_slot, self.library_card_number))
                 conn.commit()
                 if cursor.rowcount > 0:
-                    print(f"Reservation for {time_slot} cancelled.")
+                    return
                 else:
                     raise ValueError("No reservation found for this time slot.")
             except sqlite3.Error as e:
@@ -194,4 +194,3 @@ class ComputerReservation:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM reservations WHERE time_slot < ?", (now.strftime('%m/%d/%y %H:%M'),))
             conn.commit()
-            print("Past reservations removed.")
