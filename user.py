@@ -49,13 +49,13 @@ class User:
 
         Returns:
             list or str: A list of reservation time slots if any exist, 
-                         or a string "No Reservations" if none are found.
+                         or [] if none are found.
         """
         with self.reservation.get_db() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT time_slot FROM reservations WHERE library_card_number = ?", (self.library_card_number,))
             reservations = cursor.fetchall()
-            return reservations if reservations else "No Reservations"
+            return reservations if reservations else []
             
 
     def encrypt_pin(self, pin: str) -> str:
