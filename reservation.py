@@ -93,7 +93,7 @@ class ComputerReservation:
             time_slot (str): The desired time slot in 'MM/DD/YY HH:00' format.
 
         Raises:
-            TypeError: If the time slot format is invalid.
+            TypeError: If the time slot doesn't work.
             ValueError: If the time slot is in the past.
             IndexError: If the time slot is already reserved.
         """
