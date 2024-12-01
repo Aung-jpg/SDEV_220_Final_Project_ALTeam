@@ -8,7 +8,7 @@ class GUI:
     def __init__(self, root) -> None:
         self.root = root
         root.title("Computer Reservation System")
-        root.geometry("600x400")
+        root.geometry("800x600")
         root.configure(bg="#ffffff")
         self.large_font = ('Helvetica', 20)
 
